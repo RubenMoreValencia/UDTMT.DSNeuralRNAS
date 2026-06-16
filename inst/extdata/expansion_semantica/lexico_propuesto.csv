@@ -1,0 +1,8 @@
+"termino","categoria","frecuencia","estado","accion_sugerida","estado_integracion","destino_sugerido"
+"leer","concepto_candidato",1,"candidato","evaluar incorporacion lexica","revision_lexica","revision_manual"
+"memoria","capacidad_cognitiva",2,"debilmente_conectado","fortalecer relacion semantica","fortalecer_relacion","Lexico.DSNeuralRNAS"
+"ninos","sujeto_educativo",2,"debilmente_conectado","fortalecer relacion semantica","fortalecer_relacion","Lexico.DSNeuralRNAS"
+"poesia","recurso_literario",2,"debilmente_conectado","fortalecer relacion semantica","fortalecer_relacion","Lexico.DSNeuralRNAS"
+"imaginacion","capacidad_cognitiva",1,"debilmente_conectado","fortalecer relacion semantica","fortalecer_relacion","Lexico.DSNeuralRNAS"
+"literatura","recurso_literario",1,"debilmente_conectado","fortalecer relacion semantica","fortalecer_relacion","Lexico.DSNeuralRNAS"
+"vocabulario","concepto_candidato",1,"debilmente_conectado","fortalecer relacion semantica","fortalecer_relacion","revision_manual"

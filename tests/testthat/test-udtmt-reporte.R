@@ -1,0 +1,33 @@
+test_that("se interpreta la memoria UDT-MT", {
+  if (!requireNamespace("PLN.DSNeuralRNAS", quietly = TRUE)) skip("PLN.DSNeuralRNAS no disponible")
+  dic <- PLN.DSNeuralRNAS::cargar_diccionarios_pln()
+  u <- crear_udtmt_ds("La calma llega despues de las lluvias y la perdida disminuye", "Que cambia en el texto?", dic)
+  x <- interpretar_memoria_udtmt_ds(u)
+  expect_true(is.list(x))
+  expect_true("resumen" %in% names(x))
+  expect_true(grepl("stocks", x$lectura_stocks))
+  expect_true(grepl("flujos", x$lectura_flujos))
+  expect_true(grepl("No corresponde a una LSTM", x$conclusion))
+})
+
+test_that("se genera reporte academico UDT-MT", {
+  if (!requireNamespace("PLN.DSNeuralRNAS", quietly = TRUE)) skip("PLN.DSNeuralRNAS no disponible")
+  dic <- PLN.DSNeuralRNAS::cargar_diccionarios_pln()
+  u <- crear_udtmt_ds("La calma llega despues de las lluvias y la perdida disminuye", "Que cambia en el texto?", dic)
+  rep <- generar_reporte_udtmt_ds(u)
+  expect_true(is.character(rep))
+  expect_true(any(grepl("Reporte UDT-MT", rep)))
+  expect_true(any(grepl("Ruta UDT-MT", rep)))
+  expect_true(any(grepl("Tabla compacta de stocks", rep)))
+})
+
+test_that("el reporte puede exportarse", {
+  if (!requireNamespace("PLN.DSNeuralRNAS", quietly = TRUE)) skip("PLN.DSNeuralRNAS no disponible")
+  dic <- PLN.DSNeuralRNAS::cargar_diccionarios_pln()
+  u <- crear_udtmt_ds("La calma llega despues de la lluvia", "Que cambia?", dic)
+  f <- tempfile(fileext = ".md")
+  invisible(generar_reporte_udtmt_ds(u, archivo = f))
+  expect_true(file.exists(f))
+  txt <- readLines(f, warn = FALSE)
+  expect_true(any(grepl("Reporte UDT-MT", txt)))
+})

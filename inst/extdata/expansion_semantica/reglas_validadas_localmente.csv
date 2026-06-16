@@ -1,0 +1,4 @@
+"regla","operador","tipo_relacion","n_evidencias","estado","validacion_local","estado_integracion","destino_sugerido"
+"X estimula Y","estimula","activacion",1,"regla_candidata","validada_localmente","lista_para_revision","UDTMT.DSNeuralRNAS / ExpansionSemantica.DSNeuralRNAS"
+"X favorece Y","favorece","apoyo",2,"regla_candidata","validada_localmente","lista_para_revision","UDTMT.DSNeuralRNAS / ExpansionSemantica.DSNeuralRNAS"
+"X apoya Y","apoya","apoyo_indirecto",2,"regla_candidata","requiere_revision","requiere_revision","UDTMT.DSNeuralRNAS / ExpansionSemantica.DSNeuralRNAS"

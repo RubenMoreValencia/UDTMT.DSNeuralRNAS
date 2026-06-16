@@ -1,0 +1,7 @@
+"id_test","tipo","caso","esperado","proposito","estado"
+"TP1","positivo","poesia estimula aprendizaje","poesia --estimula--> aprendizaje","verificar que la relacion candidata se reconoce desde evidencia textual equivalente","sugerido"
+"TP2","positivo","poemas infantiles favorece memoria","poemas infantiles --favorece--> memoria","verificar que la relacion candidata se reconoce desde evidencia textual equivalente","sugerido"
+"TP3","positivo","poemas infantiles favorece recuerdo","poemas infantiles --favorece--> recuerdo","verificar que la relacion candidata se reconoce desde evidencia textual equivalente","sugerido"
+"TN1","negativo","sin evidencia directa de estimula","no consolidar relacion sin origen y destino presentes","evitar que una regla candidata se generalice sin evidencia suficiente","sugerido"
+"TN2","negativo","sin evidencia directa de favorece","no consolidar relacion sin origen y destino presentes","evitar que una regla candidata se generalice sin evidencia suficiente","sugerido"
+"TN3","negativo","sin evidencia directa de apoya","no consolidar relacion sin origen y destino presentes","evitar que una regla candidata se generalice sin evidencia suficiente","sugerido"
