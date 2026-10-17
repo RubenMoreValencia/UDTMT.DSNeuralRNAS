@@ -1,7 +1,7 @@
 Package: UDTMT.DSNeuralRNAS
 Type: Package
 Title: Unidad Dinamica Textual con Memoria Trazable para DSNeuralRNAS
-Version: 0.1.5.6.11
+Version: 0.1.5.6.12
 Authors@R: person(given = "Ruben Alexander", family = "More Valencia", role = c("aut", "cre"), email = "rmorev@unp.edu.pe")
 Description: Implementa la arquitectura base UDT-MT DSNeuralRNAS para organizar textos y preguntas como estructuras dinamicas con stocks informativos, flujos textuales, memoria trazable, trayectoria interpretativa y reporte academico. Esta libreria no implementa una LSTM; define una arquitectura propia apoyada en Lexico.DSNeuralRNAS y PLN.DSNeuralRNAS.
 License: MIT + file LICENSE

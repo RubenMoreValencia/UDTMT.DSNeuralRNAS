@@ -74,8 +74,10 @@
   if (is.null(texto) || length(texto) == 0L || is.na(texto) || !nzchar(as.character(texto))) {
     return(rep(1L, n))
   }
-  bruto <- as.character(texto)
-  oraciones <- unlist(strsplit(bruto, "[.!?;:,]+\\s*", perl = TRUE), use.names = FALSE)
+  # G5-C12: internal dots in identifiers are not sentence boundaries.
+  # Insert a space (not a sentence stop), preserving token alignment.
+  bruto <- gsub("([[:alnum:]])\\.([[:alnum:]])", "\\1 \\2", as.character(texto), perl = TRUE)
+  oraciones <- unlist(strsplit(bruto, "[.!?;]+\\s*", perl = TRUE), use.names = FALSE)
   oraciones <- oraciones[!is.na(oraciones) & nzchar(trimws(oraciones))]
   if (!length(oraciones)) return(rep(1L, n))
 
@@ -374,7 +376,12 @@ extraer_relaciones_textuales_udtmt_ds <- function(x, trayectoria = NULL, texto =
     origen_i <- NA_integer_
     usar_siguiente <- length(next_contenido) > 0L &&
       (length(next_flujo) == 0L || isTRUE(head(next_contenido, 1) < head(next_flujo, 1)))
-    if (usar_siguiente) {
+    # G5-C12: in "datos sinteticos", the preceding adjacent noun is the head.
+    prev_noun <- prev[tolower(cat[prev]) %in% c("sustantivo", "nombre")]
+    prev_adjacent <- length(prev_noun) && tail(prev_noun, 1L) == i - 1L
+    if (isTRUE(prev_adjacent)) {
+      origen_i <- tail(prev_noun, 1L)
+    } else if (usar_siguiente) {
       origen_i <- head(next_contenido, 1)
     } else if (length(prev)) {
       # Permite que un sustantivo de contenido actue como origen del modificador
@@ -452,6 +459,56 @@ extraer_relaciones_textuales_udtmt_ds <- function(x, trayectoria = NULL, texto =
     }
   }
 
+  # G5-C12 candidate comparator: sentence-local verbal comparisons.
+  # Does not compute or verify amounts. Existing public columns are retained.
+  compare_verbs <- c("supera", "superan", "excede", "exceden",
+                     "sobrepasa", "sobrepasan", "iguala", "igualan")
+  compare_idx <- which(tolower(token) %in% compare_verbs &
+                       tolower(cat) %in% c("verbo", "verbal"))
+  for (ci in compare_idx) {
+    misma <- which(!is.na(id_oracion) & id_oracion == id_oracion[ci])
+    prev <- misma[misma < ci]
+    post <- misma[misma > ci]
+    if (!length(prev) || !length(post)) next
+    # A comparison object follows the preposition "a" when available.
+    a_post <- post[tolower(token[post]) == "a"]
+    if (length(a_post)) post <- post[post > a_post[1L]]
+    nouns_before <- prev[tolower(cat[prev]) %in% c("sustantivo", "nombre")]
+    nouns_after <- post[tolower(cat[post]) %in% c("sustantivo", "nombre")]
+    # Never mistake currency units immediately following a number for object.
+    nouns_after <- nouns_after[!vapply(nouns_after, function(j) {
+      j > 1L && grepl("^[0-9]+([.,][0-9]+)?$", token[j - 1L])
+    }, logical(1))]
+    if (!length(nouns_before) || !length(nouns_after)) next
+    oi <- tail(nouns_before, 1L)
+    di <- nouns_after[1L]
+    # Skip same-surface reflexives only when token positions are actually equal.
+    if (oi == di) next
+    # Optional qualifier: "recaudacion de PAB3" / "recaudacion de PAB2".
+    qualifier <- function(j, end) {
+      if (j + 2L <= end && tolower(token[j + 1L]) == "de" &&
+          !is.na(token[j + 2L]) && nzchar(token[j + 2L])) {
+        return(paste0(token[j], "@", toupper(token[j + 2L])))
+      }
+      token[j]
+    }
+    origen_c <- qualifier(oi, ci - 1L)
+    destino_c <- qualifier(di, max(post))
+    # Record the mentioned comparison magnitude as a connector, not as money truth.
+    inter <- seq.int(ci + 1L, di - 1L)
+    inter <- inter[inter > ci & inter < di]
+    evidencia_comp <- paste(token[seq.int(oi, max(di, di +
+      if (grepl("@", destino_c, fixed=TRUE)) 2L else 0L))], collapse=" ")
+    conector_comp <- if (length(inter)) paste(token[inter], collapse=" ") else NA_character_
+    relaciones[[length(relaciones) + 1L]] <- data.frame(
+      id_relacion = paste0("R", length(relaciones) + 1L),
+      origen = origen_c, relacion = token[ci], destino = destino_c,
+      conector = conector_comp, tipo_relacion = "contrasta",
+      evidencia = evidencia_comp, posicion_origen = pos[oi],
+      posicion_relacion = pos[ci], posicion_destino = pos[di],
+      confianza = "media", stringsAsFactors = FALSE
+    )
+  }
   if (!length(relaciones)) return(vacio())
   out <- do.call(rbind, relaciones)
 
