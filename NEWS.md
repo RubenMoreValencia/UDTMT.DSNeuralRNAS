@@ -1,3 +1,16 @@
+# UDTMT.DSNeuralRNAS 0.1.5.6.11
+
+- Fixed relation extraction for nominal action subjects.
+- Improved extraction of comparative verbal relations.
+- Prevented unsupported nominal modulation relations.
+- Protected relation extraction against empty candidate indices.
+- Improved package documentation and namespace imports.
+- Improved source portability and package distribution.
+- Added F4.1 regression tests.
+
+Validation baseline: 109 passing testthat expectations.
+R CMD check before version promotion: 0 errors, 0 warnings, 0 notes.
+
 # UDTMT.DSNeuralRNAS 0.1.5.6.10
 
 - Refuerza rescate local de moduladores posnominales posteriores para conservar relaciones como `transformacion --modula--> estable`.

@@ -23,3 +23,7 @@ export(resumir_relaciones_udtmt_ds)
 export(resumir_udtmt_ds)
 export(trazar_udtmt_ds)
 export(verificar_udtmt_ds)
+importFrom(utils,
+  head,
+  tail
+)

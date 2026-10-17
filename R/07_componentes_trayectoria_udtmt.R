@@ -28,7 +28,11 @@
 #' if (requireNamespace("PLN.DSNeuralRNAS", quietly = TRUE)) {
 #'   dic <- PLN.DSNeuralRNAS::cargar_diccionarios_pln()
 #'   a <- PLN.DSNeuralRNAS::analizar_texto_pln("La perdida disminuye despues del ajuste", dic)
-#'   t <- PLN.DSNeuralRNAS::construir_trayectoria_pln("La perdida disminuye despues del ajuste", "Que cambia?", dic)
+#' t <- PLN.DSNeuralRNAS::construir_trayectoria_pln(
+#'   "La perdida disminuye despues del ajuste",
+#'   "Que cambia?",
+#'   dic
+#' )
 #'   refinar_trayectoria_udtmt_ds(a, t)
 #' }
 #'

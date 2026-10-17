@@ -12,11 +12,11 @@
 
 .udtmt_conectores_relacionales <- function() {
   c(
-    "despues", "después", "antes", "durante", "luego", "posterior", "previamente",
+    "despues", "despu\u00e9s", "antes", "durante", "luego", "posterior", "previamente",
     "con", "sin", "por", "para", "hacia", "desde", "en", "entre", "sobre", "bajo",
     "de", "del", "la", "el", "las", "los", "un", "una", "unos", "unas",
-    "y", "o", "pero", "aunque", "porque", "debido", "mediante", "segun", "según",
-    "que", "se", "al", "coma", "ademas", "además", "por", "ello", "tanto", "sin", "embargo"
+    "y", "o", "pero", "aunque", "porque", "debido", "mediante", "segun", "seg\u00fan",
+    "que", "se", "al", "coma", "ademas", "adem\u00e1s", "por", "ello", "tanto", "sin", "embargo"
   )
 }
 
@@ -62,7 +62,7 @@
 
 .udtmt_tokenizar_oracion <- function(x) {
   x <- tolower(as.character(x))
-  x <- gsub("[^[:alnum:]áéíóúñüÁÉÍÓÚÑÜ]+", " ", x, perl = TRUE)
+  x <- gsub("[^[:alnum:]\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1\u00fc\u00c1\u00c9\u00cd\u00d3\u00da\u00d1\u00dc]+", " ", x, perl = TRUE)
   out <- unlist(strsplit(trimws(x), "\\s+"), use.names = FALSE)
   out[!is.na(out) & nzchar(out)]
 }
@@ -214,6 +214,11 @@ extraer_relaciones_textuales_udtmt_ds <- function(x, trayectoria = NULL, texto =
   previo_inmediato <- c(NA_character_, token[-length(token)])
   es_flujo <- es_flujo & !( .udtmt_flujo_ambiguo_nominal(token) & .udtmt_es_determinante_rel(previo_inmediato) )
 
+    # F4.1-B: comparative verbs are relational predicates, not discourse connectors.
+  comparativo_verbal <- cat_low == "verbo" & rol_low == "operador_contraste"
+  comparativo_verbal[is.na(comparativo_verbal)] <- FALSE
+  op[comparativo_verbal] <- FALSE
+  conector_rel[comparativo_verbal] <- FALSE
   idx_flujo <- which(es_flujo & !op & !conector_rel & !is.na(token) & nzchar(token))
   contenido_idx <- which(!op & !is.na(token) & nzchar(token))
   contenido_semantico_idx <- contenido_idx[!conector_rel[contenido_idx]]
@@ -263,7 +268,7 @@ extraer_relaciones_textuales_udtmt_ds <- function(x, trayectoria = NULL, texto =
     prev <- misma_oracion_idx[misma_oracion_idx < i]
     siguiente_idx <- misma_oracion_idx[misma_oracion_idx > i]
 
-    prev_origen <- prev[!es_flujo[prev]]
+    prev_origen <- prev[!es_flujo[prev] | cat_low[prev] %in% c("sustantivo", "nombre")]
     origen_i <- if (length(prev_origen)) tail(prev_origen, 1) else NA_integer_
     origen_por_coordinacion <- FALSE
     key <- as.character(id_oracion[i])
@@ -305,10 +310,16 @@ extraer_relaciones_textuales_udtmt_ds <- function(x, trayectoria = NULL, texto =
     misma_oracion_idx <- contenido_semantico_idx[id_oracion[contenido_semantico_idx] == id_oracion[i]]
     prev <- misma_oracion_idx[misma_oracion_idx < i]
     nexts <- misma_oracion_idx[misma_oracion_idx > i]
-    origen_i <- if (length(prev)) tail(prev[!es_flujo[prev]], 1) else NA_integer_
+    origen_i <- if (length(prev)) {
+      cand_origen <- prev[!es_flujo[prev] | cat_low[prev] %in% c("sustantivo", "nombre")]
+      if (length(cand_origen)) tail(cand_origen, 1) else NA_integer_
+    } else NA_integer_
     nexts_destino <- nexts[!es_flujo[nexts]]
     destino_i <- if (length(nexts_destino)) head(nexts_destino, 1) else NA_integer_
-    if (!is.na(origen_i) && tolower(cat[origen_i]) %in% c("adjetivo", "adverbio")) {
+    if (length(origen_i) == 1L && !is.na(origen_i) &&
+        origen_i >= 1L && origen_i <= length(cat) &&
+        !is.na(cat[origen_i]) &&
+        tolower(cat[origen_i]) %in% c("adjetivo", "adverbio")) {
       pp <- prev[prev < origen_i & !es_flujo[prev]]
       if (length(pp)) origen_i <- tail(pp, 1)
     }
@@ -343,7 +354,8 @@ extraer_relaciones_textuales_udtmt_ds <- function(x, trayectoria = NULL, texto =
     invisible(agregar_relacion(origen_i, i, destino_i, NA_character_, NA_character_))
   }
 
-  idx_mod <- which(.udtmt_es_modificador_rel(token, cat, tipo, rol) &
+  idx_mod <- which((cat_low %in% c("adjetivo", "adverbio") |
+                     tolower(rol) %in% c("modulador", "modulador_dinamico", "modulador_intensidad", "modulador_afectivo")) &
                      !op & !conector_rel & !es_flujo & !is.na(token) & nzchar(token))
   for (i in idx_mod) {
     misma_oracion_idx <- contenido_semantico_idx[id_oracion[contenido_semantico_idx] == id_oracion[i]]
@@ -405,14 +417,15 @@ extraer_relaciones_textuales_udtmt_ds <- function(x, trayectoria = NULL, texto =
             tolower(tipo[origen_i]) %in% c("transformacion", "estado", "concepto", "proceso", "naturaleza"))) next
       misma_oracion_idx <- contenido_semantico_idx[id_oracion[contenido_semantico_idx] == id_oracion[origen_i]]
       cand <- misma_oracion_idx[misma_oracion_idx > origen_i]
-      cand <- cand[.udtmt_es_modificador_rel(token[cand], cat[cand], tipo[cand], rol[cand])]
+      cand <- cand[tolower(cat[cand]) %in% c("adjetivo", "adverbio") |
+                   tolower(rol[cand]) %in% c("modulador", "modulador_dinamico", "modulador_intensidad", "modulador_afectivo")]
       cand <- cand[!es_flujo[cand] & !conector_rel[cand]]
       if (!length(cand)) next
       mod_i <- head(cand[!is.na(cand)], 1)
       if (!length(mod_i) || is.na(mod_i)) next
       # No cruzar hacia otra relacion verbal posterior. La comparacion se
       # protege contra NA para que los ejemplos internos no fallen cuando
-      # existan tokens sin posicion relacional válida.
+      # existan tokens sin posicion relacional v\u00e1lida.
       flujo_posterior <- misma_oracion_idx[misma_oracion_idx > origen_i & es_flujo[misma_oracion_idx]]
       flujo_posterior <- flujo_posterior[!is.na(flujo_posterior)]
       if (length(flujo_posterior) > 0L && isTRUE(head(flujo_posterior, 1) < mod_i)) next
@@ -512,7 +525,8 @@ extraer_relaciones_textuales_udtmt_ds <- function(x, trayectoria = NULL, texto =
         mod_i <- cand[1]
         if (!length(mod_i) || is.na(mod_i)) next
         if (isTRUE(es_flujo[mod_i])) next
-        if (!.udtmt_es_modificador_rel(token[mod_i], cat[mod_i], tipo[mod_i], rol[mod_i])) next
+        if (!(tolower(cat[mod_i]) %in% c("adjetivo", "adverbio") |
+              tolower(rol[mod_i]) %in% c("modulador", "modulador_dinamico", "modulador_intensidad", "modulador_afectivo"))) next
 
         flujo_intermedio <- misma[pos[misma] > pos[origen_idx] & pos[misma] < pos[mod_i] & es_flujo[misma]]
         flujo_intermedio <- flujo_intermedio[!is.na(flujo_intermedio)]
@@ -574,7 +588,8 @@ extraer_relaciones_textuales_udtmt_ds <- function(x, trayectoria = NULL, texto =
 
         mod_i <- cand[1]
         if (!length(mod_i) || is.na(mod_i)) next
-        if (!(.udtmt_es_modificador_rel(token[mod_i], cat[mod_i], tipo[mod_i], rol[mod_i]) %in% TRUE)) next
+        if (!(tolower(cat[mod_i]) %in% c("adjetivo", "adverbio") |
+              tolower(rol[mod_i]) %in% c("modulador", "modulador_dinamico", "modulador_intensidad", "modulador_afectivo"))) next
 
         flujo_intermedio <- misma[pos[misma] > pos[origen_idx] & pos[misma] < pos[mod_i] & (es_flujo[misma] %in% TRUE)]
         flujo_intermedio <- flujo_intermedio[!is.na(flujo_intermedio)]

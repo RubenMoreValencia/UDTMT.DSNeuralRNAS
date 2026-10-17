@@ -196,7 +196,7 @@ generar_reporte_udtmt_ds <- function(unidad, archivo = NULL, incluir_tablas = TR
     "",
     paste0("`", paste(traza$ruta_udtmt, collapse = " -> "), "`"),
     "",
-    "## 8. Conclusión",
+    "## 8. Conclusi\u00f3n",
     "",
     interpretacion$conclusion
   )
